@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="container">
+	<div class="page-header">
+		<div class="row">
+		    <div class="col-md-3"></div>
+		    <div class="col-md-6">
+	    		<div class="list-group">
+				<a class="list-group-item active">
+				    <h4 class="list-group-item-heading">Add Category</h4>
+				</a>
+		 		</div>
+
+		 		{% if error %}
+				    <p class=error><strong>Error:</strong> {{ error }}
+				  {% endif %}
+		      <form action="{{ url_for('add_category') }}" method="post">
+		        <div class="form-group">
+		          <label for="name">name</label>
+		          <input type="text" class="form-control" name="category[name]" id="username" placeholder="name">
+		        </div>
+		        <button type="submit" class="btn btn-primary btn-lg">Add</button>
+		      </form>
+		    </div>
+		    <div class="col-md-3"></div>
+		  </div>
+	</div>
+</div>
+{% endblock %}
