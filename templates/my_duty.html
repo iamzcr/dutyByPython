@@ -18,54 +18,41 @@
 	  <div class="form-group">
 	    <label for="exampleInputEmail2">Category</label>
 	    <select class="form-control" name="name">
-		  <option>1</option>
-		  <option>2</option>
-		  <option>3</option>
-		  <option>4</option>
-		  <option>5</option>
+	    	  {% if category_list %}
+
+              {% for category in category_list %}
+                   <option value="{{category.category_id}}">{{category.name}}</option>
+              {% endfor %}
+            {% endif %}
 		</select>
 	  </div>
 	  <button type="submit" class="btn btn-default">Search</button>
 	</form>
+	<a class="btn btn-danger" href="{{ url_for ('add_duty') }}">ADD</a><a class="btn btn-success" href="{{ url_for ('add_category') }}">Add Category</a>
 </div>
 <div class="container">
   		<table class=" table table-hover">
   			<thead>
-  				<th class="active"></th>
-  				<th class="active"></th>
-  				<th class="active"></th>
-  				<th class="active"></th>
-  				<th class="active"></th>
+  				<th class="active">ID</th>
+  				<th class="active">Title</th>
+  				<th class="active">Category</th>
+  				<th class="active">是否公开</th>
+  				<th class="active">是否完成</th>
+  				<th class="active">创建时间</th>
   			</thead>
   			<tbody>
+  				{% if duty_list %}
+  				{% for duty in duty_list %}
 				<tr>
-				  <td class="active">...</td>
-				  <td class="success">...</td>
-				  <td class="warning">...</td>
-				  <td class="danger">...</td>
-				  <td class="info">...</td>
+				  <td class="active">{{duty.duty_id}}</td>
+				  <td class="success">{{duty.title}}</td>
+				  <td class="warning">{{duty.name}}</td>
+				  <td class="danger">{% if duty.is_show == 1 %}是{% else %}否{% endif %}</td>
+				  <td class="info">{% if duty.status == 1 %}是{% else %}否{% endif %}</td>
+				  <td class="info">{{duty.create_time}}</td>
 				</tr>
-				<tr>
-				  <td class="active">...</td>
-				  <td class="success">...</td>
-				  <td class="warning">...</td>
-				  <td class="danger">...</td>
-				  <td class="info">...</td>
-				</tr>
-				<tr>
-				  <td class="active">...</td>
-				  <td class="success">...</td>
-				  <td class="warning">...</td>
-				  <td class="danger">...</td>
-				  <td class="info">...</td>
-				</tr>
-				<tr>
-				  <td class="active">...</td>
-				  <td class="success">...</td>
-				  <td class="warning">...</td>
-				  <td class="danger">...</td>
-				  <td class="info">...</td>
-				</tr>
+				 {% endfor %}
+				{% endif %}
   			</tbody>
 
 		</table>

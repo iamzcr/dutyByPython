@@ -11,16 +11,43 @@
 						    <h4 class="list-group-item-heading">Add Duty</h4>
 						</a>
 				</div>
-		      <form action="{{ url_for('login') }}" method="post">
+		      <form action="{{ url_for('add_duty') }}" method="post">
 		        <div class="form-group">
-		          <label for="username">title</label>
-		          <input type="text" class="form-control" name="phone" id="username" placeholder="username/phone">
+		          <label for="title">title</label>
+		          <input type="text" class="form-control" name="title" id="title" placeholder="title">
 		        </div>
 		        <div class="form-group">
-		          <label for="password">Password</label>
-		          <input type="password" class="form-control"  name="password" id="password" placeholder="password">
+		          <label for="password">Category</label>
+		             <select class="form-control" name="name">
+				    	  {% if category_list %}
+
+			              {% for category in category_list %}
+			                   <option value="{{category.category_id}}">{{category.name}}</option>
+			              {% endfor %}
+			            {% endif %}
+					</select>
 		        </div>
-		        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+
+		         <div class="form-group">
+		          <label for="username">是否公开</label>
+		          <label class="radio-inline">
+					  <input type="radio" name="is_show"  value="0"> no
+					</label>
+					<label class="radio-inline">
+					  <input type="radio" name="is_show" value="1"> yes
+					</label>
+		        </div>
+
+				<div class="form-group">
+		          <label for="username">是否完成</label>
+		          <label class="radio-inline">
+					  <input type="radio" name="status" value="0"> no
+					</label>
+					<label class="radio-inline">
+					  <input type="radio" name="status" value="1"> yes
+					</label>
+		        </div>
+		        <input type="submit" class="btn btn-primary btn-lg" value="Submit"/>
 		      </form>
 		    </div>
 		    <div class="col-md-3"></div>
