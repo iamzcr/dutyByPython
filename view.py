@@ -8,10 +8,11 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 app = Flask(__name__)
-app.debug = True
+
 app.secret_key = 'my is  some_secret'
 
 # app.config['SESSION_TYPE'] = 'filesystem'
+
 # from sae.const import (MYSQL_HOST, MYSQL_HOST_S,
 #     MYSQL_PORT, MYSQL_USER, MYSQL_PASS, MYSQL_DB
 # )
@@ -24,7 +25,6 @@ app.secret_key = 'my is  some_secret'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@localhost/dutylist'
 db = SQLAlchemy(app)
-
 
 class Category(db.Model):
 	__tablename__ = "du_category"
@@ -74,12 +74,27 @@ class User(db.Model):
 	def __repr__(self):
 		return self.username
 
-@app.route('/')
+@app.route('/',methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
-
+	myname = None
+	if 'user_id' in session:
+		myname = session['username']
+	if request.method == 'GET' and request.args.get('category_id'):
+		category_id = request.args.get('category_id')
+		sql = 'select t1.*,t2.name,t3.username  from du_duty as t1 left join du_category as t2 on t2.category_id = t1.category_id left join du_user as t3 on t3.user_id = t1.user_id where t1.is_show = 1 and t1.category_id = %s' % category_id		
+	else:
+		sql = 'select t1.*,t2.name,t3.username  from du_duty as t1 left join du_category as t2 on t2.category_id = t1.category_id left join du_user as t3 on t3.user_id = t1.user_id where t1.is_show = 1'
+	duty_list = db.session.execute(sql).fetchall()
+	category_list = Category.query.order_by(Category.category_id).all()
+	return render_template('index.html',duty_list = duty_list,category_list=category_list,myname = myname)
+@app.route('/logout')
+def logout():
+	session.pop('user_id', None)
+	session.pop('username', None)
+	return redirect(url_for('index'))
 @app.route('/login',methods=['GET', 'POST'])
 def login():
+	myname = None
 	if request.method == "POST":
 		phone = request.form['phone']
 		password = request.form['password']
@@ -91,16 +106,17 @@ def login():
 					return redirect(url_for('login'))
 				else:
 					session['user_id'] = user.user_id
+					session['username'] = user.username
 					return redirect(url_for('my_duty'))
 		else:
 			flash('field can not be empty')
 			return redirect(url_for('login'))
 	else:
-		return render_template('login.html')
+		return render_template('login.html',myname = myname)
 
 @app.route('/register',methods=['GET', 'POST'])
 def register():
-	error = None
+	myname = None
 	if request.method == "POST":
 		username = request.form['username']
 		phone = request.form['phone']
@@ -128,13 +144,14 @@ def register():
 			flash('field can not be empty')
 			return redirect(url_for('register'))
 	else:
-		return render_template('register.html')
+		return render_template('register.html',myname = myname)
 
 @app.route('/add_duty',methods=['GET','POST'])
 def add_duty():
 	if 'user_id' not in session:
 		return redirect(url_for('login'))
 	else:
+		myname = session['username']
 		if request.method == "POST":
 			title = request.form['title']
 			print title
@@ -159,40 +176,73 @@ def add_duty():
 			category_list = Category.query.order_by(Category.category_id).all()
 			return render_template('add_duty.html',category_list = category_list)
 
-@app.route('/my_duty')
+@app.route('/my_duty',methods=['GET', 'POST'])
 def my_duty():
-	if 'user_id' in session:
-		sql = 'select du_duty.*,du_category.name from du_duty  left join du_category on du_category.category_id = du_duty.category_id where user_id = %s' % session['user_id']
+	if 'user_id' not in session:
+		return redirect(url_for('login'))
+	else:
+		myname = session['username']
+		if request.method == 'GET' and request.args.get('category_id'):
+			category_id = request.args.get('category_id')
+			sql = 'select t1.*,t2.name from du_duty as t1  left join du_category as t2 on t2.category_id = t1.category_id where t1.user_id = %s  and t1.category_id = %s' % (session['user_id'],category_id)
+		else:
+			sql = 'select t1.*,t2.name from du_duty as t1  left join du_category as t2 on t2.category_id = t1.category_id where user_id = %s' % session['user_id']
 		duty_list = db.session.execute(sql).fetchall()
 		category_list = Category.query.order_by(Category.category_id).all()
-		return render_template('my_duty.html',duty_list = duty_list,category_list=category_list)
-	else:
-		return redirect(url_for('login'))
+		return render_template('my_duty.html',duty_list = duty_list,category_list=category_list,myname=myname)
+		
 
 @app.route('/add_category',methods=['GET', 'POST'])
 def add_category():
-    if request.method == 'POST':
-        name = request.form['name']
-        if name is None:
-        	error = 'name not None!'
-        	return render_template('add_category.html',error=error)
-        else:
-        	res = Category.query.filter_by(name=name).first()
-        	if res:
-        		flash('catgory is be here')
-        		return redirect(url_for('add_category'))
-        	else:
-				data = Category(name)
-				res = db.session.add(data)
-				db.session.commit()
-				return redirect(url_for('my_duty'))
-    return render_template('add_category.html')
+	if 'user_id' not in session:
+		return redirect(url_for('login'))
+	else:
+		myname = session['username']
+		if request.method == 'POST':
+			name = request.form['name']
+			if name:
+				res = Category.query.filter_by(name=name).first()
+				if res:
+					flash('catgory is be here')
+					return redirect(url_for('add_category'))
+				else:
+					data = Category(name)
+					res = db.session.add(data)
+					db.session.commit()
+					return redirect(url_for('my_duty'))
+			else:
+				flash('name not be None!')
+				return render_template('add_category.html')
+				
+		return render_template('add_category.html' ,username=session['username'],myname=myname)
+'''
+@app.route('/search',methods=['GET', 'POST'])
+def search():
+	if request.method == 'GET':
+		category_id = request.args.get('category_id')
+		sql = 'select du_duty.*,du_category.name,du_user.username  from du_duty  left join du_category on du_category.category_id = du_duty.category_id left join du_user on du_user.user_id = du_duty.user_id where du_duty.is_show = 1 where du_duty.category_id= %s' % category_id
+		if session['user_id']:
+			sql = 'select du_duty.*,du_category.name from du_duty  left join du_category on du_category.category_id = du_duty.category_id where user_id = %s and du_duty.category_id = %s ' % (session['user_id'],category_id)
+			
+		duty_list = db.session.execute(sql).fetchall()
+		print duty_list
+		category_list = Category.query.order_by(Category.category_id).all()
+		return render_template('search.html',duty_list = duty_list,category_list=category_list)
+	else:
+		return redirect(url_for('index'))
+'''
 @app.errorhandler(404) 
-def page_not_found(e): 
-    return render_template('404.html'), 404 
+def page_not_found(e):
+	myname = None
+	if 'user_id' in session:
+		myname = session['username']
+	return render_template('404.html',myname=myname), 404 
 @app.errorhandler(500) 
 def internal_server_error(e): 
-    return render_template('500.html'), 500
+	myname = None
+	if 'user_id' in session:
+		myname = session['username']
+	return render_template('500.html',myname=myname), 500
 
 if __name__ == '__main__':
 	app.debug = True
