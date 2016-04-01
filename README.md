@@ -4,6 +4,7 @@
 git clone git@github.com:iamzcr/daily-duty-list.git
 #install
 pip install -r requirements.txt
+记得导入数据库文件：dutylist.sql
 #run
 cd daily-duty-list
 python view.py
