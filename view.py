@@ -162,7 +162,7 @@ def add_duty():
 			category_id = request.form['name']
 			is_show = request.form['is_show']
 			status = request.form['status']
-			if title or category_id:
+			if title and category_id:
 				data = Duty(category_id,session['user_id'],title,status,is_show,time.time())
 				res = db.session.add(data)
 				db.session.commit()
