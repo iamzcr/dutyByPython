@@ -23,7 +23,7 @@ app.secret_key = 'my is  some_secret'
 
 # app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@localhost/dutylist'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost/dutylist'
 db = SQLAlchemy(app)
 
 class Category(db.Model):
@@ -108,6 +108,10 @@ def login():
 					session['user_id'] = user.user_id
 					session['username'] = user.username
 					return redirect(url_for('my_duty'))
+			else:
+				flash('Password or Phone is not ture')
+				return redirect(url_for('login'))
+
 		else:
 			flash('field can not be empty')
 			return redirect(url_for('login'))
